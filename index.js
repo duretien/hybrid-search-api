@@ -1,3 +1,4 @@
+import { getSuggestions } from "./suggestions.js";
 import express from "express";
 import fetch from "node-fetch";
 import cors from "cors";
@@ -101,20 +102,24 @@ app.post("/search", async (req, res) => {
             source = "wikipedia";
         }
 
+        // If STILL no results → get suggestions
+        let suggestions = [];
         if (!results || results.length === 0) {
-            results = [];
+            suggestions = await getSuggestions(query);
         }
 
-        const payload = { results, source };
+        const payload = { results, source, suggestions };
         saveToCache(query, payload);
 
         res.json({
             query,
             results,
             source,
+            suggestions,
             cached: false,
             trending: getTrending()
         });
+
     } catch (err) {
         res.json({
             query,
